@@ -9,6 +9,16 @@ if [ -z $@ ]; then
     exit 1;
 fi
 
+# Overwrite warning
+echo "=== WARNING: THIS SCRIPT MAY OVERWRITE ANY EXISTING ANSIBLE FILES! ==="
+read -p "CONTINUE? (y/n) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Right, we'll stop here then. Goodbye."
+    exit 1
+fi
+echo
+
 # Vars
 ANSIBLE_CONFIG=ansible.cfg
 ANSIBLE_TOP_LEVEL_DIRS=(group_vars host_vars)
@@ -18,9 +28,7 @@ ANSIBLE_INVENTORY=inventory
 
 # Create ansible.cfg with some defaults
 echo "+ Creating a config with some common defaults..."
-echo
-if [ ! -f ${ANSIBLE_CONFIG} ]; then
-    touch ${ANSIBLE_CONFIG}
+touch ${ANSIBLE_CONFIG}
 
 cat > ${ANSIBLE_CONFIG} <<EOF
 [default]
@@ -32,67 +40,47 @@ private_key_file  = ~/.ssh/id_rsa
 host_key_checking = False
 EOF
 
-    echo "+ Done."
-    echo
-else
-    echo "- Config file already exists. Skipping..."
-    echo
-fi
+echo "+ Done."
+echo
 
 # Create an inventory file
 echo "+ Creating a blank inventory file..."
+touch ${ANSIBLE_INVENTORY}
+echo "[all]" > ${ANSIBLE_INVENTORY}
+
+echo "+ Done."
 echo
-if [ ! -f ${ANSIBLE_INVENTORY} ]; then
-    touch ${ANSIBLE_INVENTORY}
-    echo "[all]" > ${ANSIBLE_INVENTORY}
-    echo "+ Done."
-    echo
-else
-    echo "- Inventory file already exists. Skipping..."
-    echo
-fi
 
 # Create top-level directory structure
 echo "+ Creating top-level directories..."
-echo
 for dir in ${ANSIBLE_TOP_LEVEL_DIRS[@]}; do
-    if [ ! -d ${dir} ]; then
-        mkdir -p ${dir}
-    else
-        echo "- ${dir} already exists. Skipping..."
-    fi
+    mkdir -p ${dir}
 done
+
 echo "+ Done."
 echo
 
 # Create roles structure
 echo "+ Creating roles directory..."
+mkdir -p roles
+
+echo "+ Done."
 echo
-if [ ! -d roles ]; then
-    mkdir roles
-    echo "+ Done."
-    echo
-else
-    echo "- Roles directory already exists. Skipping..."
-    echo
-fi
 
 echo "+ Setting desired roles with common directory structure..."
-echo
 for role in $@; do
     for dir in ${ANSIBLE_ROLE_DIRS[@]}; do
         mkdir -p roles/${role}/${dir}
     done
     echo "---" > roles/${role}/tasks/main.yml
 done
+
 echo "+ Done."
 echo
 
 # Create a master site.yml playbook calling all roles on all hosts
 echo "+ Creating a top-level playbook to run provided roles..."
-echo
-if [ ! -f ${ANSIBLE_PLAY} ]; then
-    touch ${ANSIBLE_PLAY}
+touch ${ANSIBLE_PLAY}
 
 cat > ${ANSIBLE_PLAY} <<EOF
 ---
@@ -103,11 +91,7 @@ cat > ${ANSIBLE_PLAY} <<EOF
 $(for role in $@; do echo "    - ${role}"; done)
 EOF
 
-    echo "+ Done"
-    echo
-else
-    echo "- Master playbook already exists. Skipping..."
-    echo
-fi
+echo "+ Done"
+echo
 
 echo "You're all set! Goodbye!"
