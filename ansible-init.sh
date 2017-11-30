@@ -3,6 +3,13 @@
 set -eu
 set -o pipefail
 
+if [ -z $@ ]; then
+    echo "Please specify the roles you need as spaced cli arguments."
+    echo "For example 'bash ansible-init.sh myrole yourole theirrole'."
+    echo
+    exit 1;
+fi
+
 # Vars
 ANSIBLE_CONFIG=ansible.cfg
 ANSIBLE_ROLE_DIRS=(tasks handlers templates files vars defaults)

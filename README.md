@@ -6,4 +6,4 @@ Clone the script into a directory somewhere outside your project, then:
 
 `cd /path/to/your/project`
 
-`bash /path/to/ansible-init.sh`
+`bash /path/to/ansible-init.sh role1 role2 rolen`
