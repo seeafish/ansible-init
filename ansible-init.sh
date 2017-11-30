@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -eu
 set -o pipefail
 
@@ -12,12 +11,13 @@ fi
 
 # Vars
 ANSIBLE_CONFIG=ansible.cfg
-ANSIBLE_ROLE_DIRS=(tasks handlers templates files vars defaults)
-ANSIBLE_PLAY=site.yaml
+ANSIBLE_TOP_LEVEL_DIRS=(group_vars host_vars)
+ANSIBLE_ROLE_DIRS=(tasks handlers templates files vars defaults meta)
+ANSIBLE_PLAY=site.yml
 ANSIBLE_INVENTORY=inventory
 
 # Create ansible.cfg with some defaults
-echo "+ Creating ansible.cfg with some common defaults..."
+echo "+ Creating a config with some common defaults..."
 echo
 if [ ! -f ${ANSIBLE_CONFIG} ]; then
     touch ${ANSIBLE_CONFIG}
@@ -35,7 +35,7 @@ EOF
     echo "+ Done."
     echo
 else
-    echo "- ansible.cfg already exists. Skipping..."
+    echo "- Config file already exists. Skipping..."
     echo
 fi
 
@@ -51,6 +51,19 @@ else
     echo "- Inventory file already exists. Skipping..."
     echo
 fi
+
+# Create top-level directory structure
+echo "+ Creating top-level directories..."
+echo
+for dir in ${ANSIBLE_TOP_LEVEL_DIRS[@]}; do
+    if [ ! -d ${dir} ]; then
+        mkdir -p ${dir}
+    else
+        echo "- ${dir} already exists. Skipping..."
+    fi
+done
+echo "+ Done."
+echo
 
 # Create roles structure
 echo "+ Creating roles directory..."
@@ -75,7 +88,7 @@ done
 echo "+ Done."
 echo
 
-# Create a high level site.yaml playbook calling all roles on all hosts
+# Create a master site.yml playbook calling all roles on all hosts
 echo "+ Creating a top-level playbook to run provided roles..."
 echo
 if [ ! -f ${ANSIBLE_PLAY} ]; then
@@ -90,10 +103,10 @@ cat > ${ANSIBLE_PLAY} <<EOF
 $(for role in $@; do echo "    - ${role}"; done)
 EOF
 
-    echo "+Done"
+    echo "+ Done"
     echo
 else
-    echo "- Top-level play already exists. Skipping..."
+    echo "- Master playbook already exists. Skipping..."
     echo
 fi
 
