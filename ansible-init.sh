@@ -23,6 +23,7 @@ if [ ! -f ${ANSIBLE_CONFIG} ]; then
     touch ${ANSIBLE_CONFIG}
 
 cat > ${ANSIBLE_CONFIG} <<EOF
+[default]
 inventory         = ./inventory
 roles_path        = ./roles
 become            = True
